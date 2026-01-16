@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+<div class="login-page">
+  <div class="login-container">
+
+    <!-- LEFT SECTION -->
+    <div class="left-section">
+      <div class="logo-wrapper">
+        <img src="{% static 'img/iitk_logo.png' %}">
+        <div class="logo-text">
+            <h1>IITK Portal</h1>
+            <p>Powered by mookIT</p>
+        </div>
+        </div>
+    </div>
+
+    <!-- RIGHT SECTION -->
+    <div class="right-section">
+      <form method="post" class="login-block">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="login-error">
+            Invalid username or password
+        </div>
+        {% endif %}
+
+
+        <div class="intro-text">
+          <h1>Sign In</h1>
+        </div>
+
+        <input
+            type="text"
+            name="username"
+            autocomplete="username"
+            placeholder="Enter your IITK Username."
+            required
+        >
+
+        <input
+            type="password"
+            name="password"
+            autocomplete="off"
+            placeholder="Enter your IITK Password."
+            required
+        >
+
+
+        <div class="login-submit">
+          <button type="submit">SIGN IN</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
