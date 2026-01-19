@@ -1,0 +1,42 @@
+{% load static %}
+
+<header class="topbar">
+  <div class="topbar-left">
+    <img src="{% static 'img/iitk_logo.png' %}" class="topbar-logo">
+  </div>
+
+  <div class="profile-wrapper">
+    <div class="profile-trigger" onclick="toggleProfileDropdown()">
+      <div class="profile-icon">
+        <div class="profile-head"></div>
+        <div class="profile-body"></div>
+      </div>
+
+      <span class="profile-name">
+        {{ request.user.get_full_name|default:request.user.username }}
+      </span>
+      <span class="chevron">▾</span>
+    </div>
+
+    <div id="profile-dropdown" class="profile-dropdown hidden">
+      <a href="/courses/account/">My Account</a>
+      <form method="post" action="/accounts/logout/">
+        {% csrf_token %}
+        <button type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<script>
+function toggleProfileDropdown() {
+  document.getElementById("profile-dropdown").classList.toggle("hidden");
+}
+
+document.addEventListener("click", function (e) {
+  const profile = document.querySelector(".profile-wrapper");
+  if (!profile.contains(e.target)) {
+    document.getElementById("profile-dropdown").classList.add("hidden");
+  }
+});
+</script>

@@ -1,0 +1,18 @@
+<h2>TA Course Home</h2>
+
+<p>Course ID: {{ course_id }}</p>
+<ul>
+    <li>View Queries</li>
+    <li>Moderate Evaluation</li>
+</ul>
+
+<h2>Course Materials</h2>
+<ul>
+{% for m in materials %}
+  <li>{{ m.title }} — <a href="{{ m.file.url }}">Download</a></li>
+{% empty %}
+  <li>No materials published</li>
+{% endfor %}
+</ul>
+
+<a href="/courses/">← Back to Courses</a>

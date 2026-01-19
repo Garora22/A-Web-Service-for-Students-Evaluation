@@ -1,10 +1,13 @@
 from django.urls import path
+
 from .views import (
     my_courses,
     enter_course,
     professor_course_home,
     ta_course_home,
-    student_course_home
+    student_course_home,
+    my_account,
+    contact_us,
 )
 
 urlpatterns = [
@@ -14,4 +17,6 @@ urlpatterns = [
     path('<int:course_id>/professor/home/', professor_course_home),
     path('<int:course_id>/ta/home/', ta_course_home),
     path('<int:course_id>/student/home/', student_course_home),
+    path("account/", my_account),
+    path("contact/", contact_us),
 ]

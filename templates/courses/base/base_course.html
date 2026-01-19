@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IITK Portal</title>
+  <link rel="stylesheet" href="{% static 'css/courses.css' %}">
+</head>
+<body>
+
+  {% include "courses/base/header.html" %}
+
+  <div class="page-layout">
+    {% include "courses/base/sidebar.html" %}
+
+    <main class="main-content">
+        
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+</body>
+</html>

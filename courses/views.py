@@ -1,40 +1,76 @@
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from .models import CourseProfessor, CourseTA, CourseStudent
+from .models import CourseProfessor, CourseTA, CourseStudent, Semester
 from content.models import CourseMaterial
 
+
+@login_required
+def my_account(request):
+    return render(request, "account/my_account.html", {"nav_active": "account"})
+
+@login_required
+def contact_us(request):
+    return render(request, "contact_us/contact.html", {"nav_active": "contact"})
+@login_required
 def my_courses(request):
     user = request.user
     role = user.role
 
-    semester_map = defaultdict(list)
-
+    # 1️⃣ Get ALL enrolled courses
     if role == "student":
-        enrollments = CourseStudent.objects.filter(student=user).select_related("course__semester")
-        for e in enrollments:
-            semester_map[e.course.semester].append(e.course)
+        enrollments = (
+            CourseStudent.objects
+            .filter(student=user)
+            .select_related("course__semester")
+        )
+        courses = [e.course for e in enrollments]
 
     elif role == "professor":
-        enrollments = CourseProfessor.objects.filter(professor=user).select_related("course__semester")
-        for e in enrollments:
-            semester_map[e.course.semester].append(e.course)
+        enrollments = (
+            CourseProfessor.objects
+            .filter(professor=user)
+            .select_related("course__semester")
+        )
+        courses = [e.course for e in enrollments]
 
     elif role == "ta":
-        enrollments = CourseTA.objects.filter(ta=user).select_related("course__semester")
-        for e in enrollments:
-            semester_map[e.course.semester].append(e.course)
+        enrollments = (
+            CourseTA.objects
+            .filter(ta=user)
+            .select_related("course__semester")
+        )
+        courses = [e.course for e in enrollments]
 
-    # split active / inactive semesters
-    active = {s: c for s, c in semester_map.items() if s.is_active}
-    inactive = {s: c for s, c in semester_map.items() if not s.is_active}
+    else:
+        courses = []
 
-    return render(request, "courses/my_courses.html", {
-        "active_semesters": active,
-        "inactive_semesters": inactive
-    })
+    # 2️⃣ Get latest 5 semesters globally (THIS WAS MISSING)
+    recent_semester_objs = list(
+        Semester.objects.order_by("-year_start", "-sem")[:5]
+    )
 
+    recent_semesters = OrderedDict((sem, []) for sem in recent_semester_objs)
+    previous_semesters = defaultdict(list)
 
+    # 3️⃣ Attach courses to correct bucket
+    for course in courses:
+        sem = course.semester
+
+        if sem in recent_semesters:
+            recent_semesters[sem].append(course)
+        else:
+            previous_semesters[sem].append(course)
+
+    return render(
+        request,
+        "courses/base/my_courses.html",
+        {
+            "recent_semesters": recent_semesters,
+            "previous_semesters": dict(previous_semesters),
+            "nav_active": "courses",
+        }
+    )
 
 @login_required
 def enter_course(request, course_id):
@@ -69,7 +105,7 @@ def professor_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id)
 
-    return render(request, 'courses/professor_home.html', {
+    return render(request, 'courses/prof_course/professor_home.html', {
         'materials': materials,
         'content_types': CourseMaterial.CONTENT_TYPE_CHOICES,
         'course_id': course_id
@@ -84,7 +120,7 @@ def ta_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id)
 
-    return render(request, 'courses/ta_home.html', {
+    return render(request, 'courses/ta_course/ta_home.html', {
         'materials': materials
     })
 
@@ -96,7 +132,7 @@ def student_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id, is_published=True)
 
-    return render(request, 'courses/student_home.html', {
+    return render(request, 'courses/student_course/student_home.html', {
         'materials': materials
     })
 

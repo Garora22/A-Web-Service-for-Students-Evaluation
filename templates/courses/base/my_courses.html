@@ -1,0 +1,115 @@
+{% extends "courses/base/base_course.html" %}
+{% load static %}
+
+{% block content %}
+
+<h2>My Courses</h2>
+
+<!-- SEMESTER TABS -->
+<div class="semester-tabs">
+  {% for sem, courses in recent_semesters.items %}
+    <button
+      class="tab {% if forloop.first %}active{% endif %}"
+      data-target="semester-{{ sem.id }}"
+    >
+      {{ sem }}
+    </button>
+  {% endfor %}
+
+  <!-- Previous Courses tab ALWAYS visible -->
+  <button class="tab" data-target="previous">
+    Previous Courses
+  </button>
+</div>
+
+<!-- RECENT SEMESTER CONTENT -->
+{% for sem, courses in recent_semesters.items %}
+  <div
+    class="semester-section"
+    id="semester-{{ sem.id }}"
+    {% if not forloop.first %}style="display:none"{% endif %}
+  >
+    <h3>{{ sem }}</h3>
+
+    {% if courses %}
+      <div class="course-grid">
+        {% for c in courses %}
+          <div class="course-card">
+            <div class="course-header">
+              <h4>{{ c.code }}</h4>
+              <small>{{ sem }}</small>
+            </div>
+
+            <div class="course-body">
+              <p>{{ c.name }}</p>
+              <a class="btn" href="/courses/{{ c.id }}/enter/">
+                Access Course
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-text">No courses in this semester.</p>
+    {% endif %}
+  </div>
+{% endfor %}
+
+<!-- PREVIOUS COURSES CONTENT (ALWAYS RENDERED) -->
+<div
+  class="semester-section"
+  id="previous"
+  style="display:none"
+>
+  <h3>Previous Courses</h3>
+
+  {% if previous_semesters %}
+    {% for sem, courses in previous_semesters.items %}
+      <h4>{{ sem }}</h4>
+
+      <div class="course-grid">
+        {% for c in courses %}
+          <div class="course-card inactive">
+            <div class="course-header">
+              <h4>{{ c.code }}</h4>
+              <small>{{ sem }}</small>
+            </div>
+
+            <div class="course-body">
+              <p>{{ c.name }}</p>
+              <a class="btn" href="/courses/{{ c.id }}/enter/">
+                View Course
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty-text">No previous courses available.</p>
+  {% endif %}
+</div>
+
+<!-- TAB SWITCHING JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const tabs = document.querySelectorAll(".semester-tabs .tab");
+  const sections = document.querySelectorAll(".semester-section");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.target;
+
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      sections.forEach(section => {
+        section.style.display =
+          section.id === target ? "block" : "none";
+      });
+    });
+  });
+});
+</script>
+
+{% endblock %}
