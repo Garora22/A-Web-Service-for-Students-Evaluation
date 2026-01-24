@@ -19,8 +19,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from users.views import register
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/register/', register, name='register'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('courses/', include('courses.urls')),
     path('content/', include('content.urls')),

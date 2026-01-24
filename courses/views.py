@@ -11,7 +11,7 @@ def my_account(request):
 
 @login_required
 def contact_us(request):
-    return render(request, "contact_us/contact.html", {"nav_active": "contact"})
+    return render(request, "account/contact.html", {"nav_active": "contact"})
 @login_required
 def my_courses(request):
     user = request.user
@@ -64,7 +64,7 @@ def my_courses(request):
 
     return render(
         request,
-        "courses/base/my_courses.html",
+        "courses/my_courses.html",
         {
             "recent_semesters": recent_semesters,
             "previous_semesters": dict(previous_semesters),
@@ -105,7 +105,7 @@ def professor_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id)
 
-    return render(request, 'courses/prof_course/professor_home.html', {
+    return render(request, 'courses/professor_home.html', {
         'materials': materials,
         'content_types': CourseMaterial.CONTENT_TYPE_CHOICES,
         'course_id': course_id
@@ -120,8 +120,9 @@ def ta_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id)
 
-    return render(request, 'courses/ta_course/ta_home.html', {
-        'materials': materials
+    return render(request, 'courses/ta_home.html', {
+        'materials': materials,
+        'course_id': course_id
     })
 
 
@@ -132,7 +133,8 @@ def student_course_home(request, course_id):
 
     materials = CourseMaterial.objects.filter(course_id=course_id, is_published=True)
 
-    return render(request, 'courses/student_course/student_home.html', {
-        'materials': materials
+    return render(request, 'courses/student_home.html', {
+        'materials': materials,
+        'course_id': course_id
     })
 

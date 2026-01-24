@@ -20,6 +20,7 @@
 
     <div id="profile-dropdown" class="profile-dropdown hidden">
       <a href="/courses/account/">My Account</a>
+      <a href="{% url 'password_change' %}">Change Password</a>
       <form method="post" action="/accounts/logout/">
         {% csrf_token %}
         <button type="submit">Log out</button>

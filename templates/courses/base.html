@@ -8,13 +8,13 @@
 </head>
 <body>
 
-  {% include "courses/base/header.html" %}
+  {% include "courses/includes/header.html" %}
 
   <div class="page-layout">
-    {% include "courses/base/sidebar.html" %}
+    {% include "courses/includes/sidebar.html" %}
 
     <main class="main-content">
-        
+
       {% block content %}{% endblock %}
     </main>
   </div>

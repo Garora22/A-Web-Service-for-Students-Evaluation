@@ -48,6 +48,12 @@
         <div class="login-submit">
           <button type="submit">SIGN IN</button>
         </div>
+
+        <p class="auth-footer">
+          <a href="{% url 'password_reset' %}">Forgot password?</a>
+          &nbsp;·&nbsp;
+          <a href="{% url 'register' %}">Create account</a>
+        </p>
       </form>
     </div>
 

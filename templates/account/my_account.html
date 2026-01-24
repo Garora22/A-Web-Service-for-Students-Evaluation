@@ -1,4 +1,4 @@
-{% extends "courses/base/base_course.html" %}
+{% extends "courses/base.html" %}
 {% load static %}
 
 {% block content %}
@@ -26,8 +26,17 @@
     <span class="value">{{ request.user.role|title }}</span>
   </div>
 
+  <div class="account-row">
+    <span class="label">Department</span>
+    <span class="value">{{ request.user.department|default:"—" }}</span>
+  </div>
+
   <div class="account-note">
     Profile updates will be enabled in a future version.
+  </div>
+
+  <div class="account-actions">
+    <a href="{% url 'password_change' %}" class="btn">Change Password</a>
   </div>
 </div>
 

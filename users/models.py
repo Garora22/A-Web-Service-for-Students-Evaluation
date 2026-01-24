@@ -14,6 +14,7 @@ class User(AbstractUser):
         choices=ROLE_CHOICES,
         default='student'
     )
+    department = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"

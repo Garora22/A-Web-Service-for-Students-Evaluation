@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-container">
+
+    <div class="left-section">
+      <div class="logo-wrapper">
+        <img src="{% static 'img/iitk_logo.png' %}">
+      </div>
+    </div>
+
+    <div class="right-section">
+      <form method="post" class="login-block auth-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="login-error">
+          {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+        </div>
+        {% endif %}
+
+        {% if form.errors %}
+        <div class="login-error">
+          Please correct the errors below.
+        </div>
+        {% endif %}
+
+        <div class="intro-text">
+          <h1>Create Account</h1>
+        </div>
+
+        <input
+          type="text"
+          name="username"
+          value="{{ form.username.value|default:'' }}"
+          autocomplete="username"
+          placeholder="Choose a username"
+          required
+          {% if form.username.errors %}class="input-error"{% endif %}
+        >
+        {% if form.username.errors %}
+        <span class="field-error">{{ form.username.errors.0 }}</span>
+        {% endif %}
+
+        <input
+          type="email"
+          name="email"
+          value="{{ form.email.value|default:'' }}"
+          autocomplete="email"
+          placeholder="Email address"
+          required
+          {% if form.email.errors %}class="input-error"{% endif %}
+        >
+        {% if form.email.errors %}
+        <span class="field-error">{{ form.email.errors.0 }}</span>
+        {% endif %}
+
+        <input
+          type="text"
+          name="first_name"
+          value="{{ form.first_name.value|default:'' }}"
+          autocomplete="given-name"
+          placeholder="First name (optional)"
+          {% if form.first_name.errors %}class="input-error"{% endif %}
+        >
+
+        <input
+          type="text"
+          name="last_name"
+          value="{{ form.last_name.value|default:'' }}"
+          autocomplete="family-name"
+          placeholder="Last name (optional)"
+          {% if form.last_name.errors %}class="input-error"{% endif %}
+        >
+
+        <input
+          type="text"
+          name="department"
+          value="{{ form.department.value|default:'' }}"
+          placeholder="Department (optional)"
+          {% if form.department.errors %}class="input-error"{% endif %}
+        >
+        {% if form.department.errors %}
+        <span class="field-error">{{ form.department.errors.0 }}</span>
+        {% endif %}
+
+        <input
+          type="password"
+          name="password1"
+          autocomplete="new-password"
+          placeholder="Password"
+          required
+          {% if form.password1.errors %}class="input-error"{% endif %}
+        >
+        {% if form.password1.errors %}
+        <span class="field-error">{{ form.password1.errors.0 }}</span>
+        {% endif %}
+
+        <input
+          type="password"
+          name="password2"
+          autocomplete="new-password"
+          placeholder="Confirm password"
+          required
+          {% if form.password2.errors %}class="input-error"{% endif %}
+        >
+        {% if form.password2.errors %}
+        <span class="field-error">{{ form.password2.errors.0 }}</span>
+        {% endif %}
+
+        <div class="login-submit">
+          <button type="submit">CREATE ACCOUNT</button>
+        </div>
+
+        <p class="auth-footer">
+          Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </p>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

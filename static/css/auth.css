@@ -110,6 +110,42 @@ html, body {
   background: #0b5ed7;
 }
 
+.auth-footer {
+  margin: 24px 0 0;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+.auth-footer a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.field-error {
+  display: block;
+  font-size: 13px;
+  color: #842029;
+  margin: -12px 0 12px;
+}
+
+.input-error {
+  border-color: #dc3545 !important;
+  background: #fff5f5 !important;
+}
+
+.auth-form .login-block input {
+  margin-bottom: 8px;
+}
+
+.auth-form .field-error {
+  margin-bottom: 14px;
+}
+
 @media (min-width: 1000px) {
   .login-container {
     flex-direction: row;     
