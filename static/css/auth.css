@@ -75,7 +75,8 @@ html, body {
   color: #444;
 }
 
-.login-block input {
+.login-block input,
+.login-block select {
   width: 100%;
   padding: 18px;
   margin-bottom: 22px;
@@ -83,12 +84,42 @@ html, body {
   border-radius: 4px;
   border: 1px solid #ced4da;
   background: #eef3f7;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #495057;
+  line-height: normal;
 }
 
-.login-block input:focus {
+.login-block input:focus,
+.login-block select:focus {
   outline: none;
   background: #ffffff;
   border-color: #0d6efd;
+}
+
+.login-block select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #eef3f7 !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+  color: #495057;
+  box-shadow: none;
+  outline: none;
+}
+
+.login-block select:not(:focus) {
+  border: 1px solid #ced4da;
+}
+
+.login-block select option {
+  background: #ffffff;
+  color: #000000;
+  padding: 10px;
 }
 
 .login-submit {
@@ -138,7 +169,8 @@ html, body {
   background: #fff5f5 !important;
 }
 
-.auth-form .login-block input {
+.auth-form .login-block input,
+.auth-form .login-block select {
   margin-bottom: 8px;
 }
 
@@ -164,3 +196,4 @@ html, body {
     justify-content: center;
   }
 }
+
