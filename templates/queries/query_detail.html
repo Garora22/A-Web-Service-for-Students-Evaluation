@@ -1,0 +1,594 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Course Header Section -->
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">{{ query.title }}</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <div class="header-actions">
+    {% if is_ta or is_professor %}
+      <a href="/queries/{{ course_id }}/ta/" class="back-link">← Back to All Queries</a>
+    {% else %}
+      <a href="/queries/{{ course_id }}/" class="back-link">← Back to My Queries</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Query Info Bar -->
+<div class="query-info-bar">
+  <div class="query-info-left">
+    <span class="info-item">
+      <strong>Student:</strong> {{ query.student.get_full_name|default:query.student.username }}
+    </span>
+    <span class="info-item">
+      <strong>Created:</strong> {{ query.created_at|date:"M d, Y • h:i A" }}
+    </span>
+  </div>
+  
+  {% if is_ta or is_professor %}
+    <form method="post" action="/queries/{{ course_id }}/query/{{ query.id }}/update-status/" class="status-form">
+      {% csrf_token %}
+      <label for="status">Status:</label>
+      <select name="status" id="status" class="status-select" onchange="this.form.submit()">
+        <option value="open" {% if query.status == 'open' %}selected{% endif %}>🔵 Open</option>
+        <option value="in_progress" {% if query.status == 'in_progress' %}selected{% endif %}>🟡 In Progress</option>
+        <option value="resolved" {% if query.status == 'resolved' %}selected{% endif %}>✅ Resolved</option>
+      </select>
+    </form>
+  {% else %}
+    <span class="status-badge-large status-{{ query.status }}">
+      {% if query.status == 'open' %}
+        🔵 Open
+      {% elif query.status == 'in_progress' %}
+        🟡 In Progress
+      {% else %}
+        ✅ Resolved
+      {% endif %}
+    </span>
+  {% endif %}
+</div>
+
+<!-- Chat Container -->
+<div class="chat-container">
+  <!-- Messages List -->
+  <div class="messages-list" id="messages-list">
+    {% for message in messages %}
+      <div class="message {% if message.sender == request.user %}message-own{% else %}message-other{% endif %}">
+        <div class="message-header">
+          <div class="message-sender">
+            <div class="sender-avatar">
+              {% if message.sender.role == 'student' %}
+                👤
+              {% elif message.sender.role == 'professor' %}
+                👨‍🏫
+              {% else %}
+                👨‍💼
+              {% endif %}
+            </div>
+            <div class="sender-info">
+              <strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>
+              <span class="sender-role">({{ message.sender.get_role_display }})</span>
+            </div>
+          </div>
+          <span class="message-time">{{ message.created_at|date:"M d, h:i A" }}</span>
+        </div>
+        
+        <div class="message-content">
+          {{ message.message|linebreaks }}
+          
+          {% if message.attachment %}
+            <div class="message-attachment">
+              <a href="{{ message.attachment.url }}" class="attachment-link" download>
+                <span class="attachment-icon">📎</span>
+                <span class="attachment-name">{{ message.attachment.name|slice:"19:" }}</span>
+                <span class="attachment-action">⬇️ Download</span>
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Message Input -->
+  <div class="message-input-container">
+    <form method="post" enctype="multipart/form-data" class="message-form" id="message-form">
+      {% csrf_token %}
+      
+      <div class="input-wrapper">
+        <textarea 
+          name="message" 
+          id="message-input" 
+          class="message-textarea"
+          placeholder="Type your message..."
+          rows="1"
+        ></textarea>
+        
+        <div class="input-actions">
+          <label for="attachment-input" class="attach-btn" title="Attach file">
+            📎
+            <input 
+              type="file" 
+              id="attachment-input" 
+              name="attachment"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              style="display: none;"
+              onchange="showAttachmentPreview(this)"
+            >
+          </label>
+          
+          <button type="submit" class="send-btn" title="Send message">
+            <span class="send-icon">📤</span>
+          </button>
+        </div>
+      </div>
+      
+      <div id="attachment-preview" class="attachment-preview" style="display: none;">
+        <span class="preview-text"></span>
+        <button type="button" class="remove-attachment" onclick="removeAttachment()">✕</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title-section {
+  flex: 1;
+}
+
+.course-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.back-link {
+  padding: 10px 20px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-link:hover {
+  background: #e9ecef;
+  color: #0b5ed7;
+}
+
+.query-info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.query-info-left {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  font-size: 14px;
+  color: #495057;
+}
+
+.info-item strong {
+  color: #1a1a1a;
+  margin-right: 4px;
+}
+
+.status-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.status-select {
+  padding: 6px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: white;
+}
+
+.status-badge-large {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.status-open {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.status-in_progress {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-resolved {
+  background: #d1f4e0;
+  color: #0f5132;
+}
+
+.chat-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 400px);
+  min-height: 500px;
+}
+
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  max-width: 75%;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-own {
+  align-self: flex-end;
+}
+
+.message-other {
+  align-self: flex-start;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.message-sender {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sender-avatar {
+  width: 32px;
+  height: 32px;
+  background: #e9ecef;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.sender-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.sender-info strong {
+  color: #1a1a1a;
+}
+
+.sender-role {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.message-content {
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.message-own .message-content {
+  background: #0d6efd;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message-other .message-content {
+  background: #f8f9fa;
+  color: #1a1a1a;
+  border-bottom-left-radius: 4px;
+}
+
+.message-attachment {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.message-own .message-attachment {
+  border-top-color: rgba(255,255,255,0.3);
+}
+
+.attachment-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.message-own .attachment-link {
+  background: rgba(255,255,255,0.2);
+}
+
+.message-other .attachment-link {
+  background: rgba(0,0,0,0.05);
+}
+
+.attachment-link:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.message-other .attachment-link:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.attachment-icon {
+  font-size: 18px;
+}
+
+.attachment-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.attachment-action {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.message-input-container {
+  padding: 20px;
+  border-top: 2px solid #e9ecef;
+}
+
+.message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.message-textarea {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 24px;
+  font-size: 15px;
+  font-family: inherit;
+  resize: none;
+  max-height: 150px;
+  transition: all 0.2s;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+.input-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.attach-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.attach-btn:hover {
+  background: #e9ecef;
+  border-color: #0d6efd;
+}
+
+.send-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d6efd;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.send-btn:hover {
+  background: #0b5ed7;
+  transform: scale(1.05);
+}
+
+.send-icon {
+  font-size: 20px;
+}
+
+.attachment-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #e7f3ff;
+  border: 2px solid #b6d4fe;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.preview-text {
+  flex: 1;
+  color: #1a1a1a;
+}
+
+.remove-attachment {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.remove-attachment:hover {
+  color: #bb2d3b;
+}
+
+@media (max-width: 768px) {
+  .course-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .query-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .chat-container {
+    height: calc(100vh - 450px);
+  }
+}
+</style>
+
+<script>
+// Auto-scroll to bottom on page load
+window.addEventListener('load', function() {
+  const messagesList = document.getElementById('messages-list');
+  messagesList.scrollTop = messagesList.scrollHeight;
+});
+
+// Auto-resize textarea
+const textarea = document.getElementById('message-input');
+textarea.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = this.scrollHeight + 'px';
+});
+
+// Show attachment preview
+function showAttachmentPreview(input) {
+  const preview = document.getElementById('attachment-preview');
+  const previewText = preview.querySelector('.preview-text');
+  
+  if (input.files && input.files[0]) {
+    const fileName = input.files[0].name;
+    previewText.textContent = '📎 ' + fileName;
+    preview.style.display = 'flex';
+  }
+}
+
+// Remove attachment
+function removeAttachment() {
+  const input = document.getElementById('attachment-input');
+  const preview = document.getElementById('attachment-preview');
+  
+  input.value = '';
+  preview.style.display = 'none';
+}
+
+// Submit form on Enter (but allow Shift+Enter for new line)
+textarea.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('message-form').submit();
+  }
+});
+</script>
+
+{% endblock %}

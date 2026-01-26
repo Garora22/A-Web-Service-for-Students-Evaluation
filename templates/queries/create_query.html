@@ -1,0 +1,327 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Course Header Section -->
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">Create New Query</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <a href="/queries/{{ course_id }}/" class="back-link">← Back to Queries</a>
+</div>
+
+<!-- Create Query Form -->
+<div class="create-query-container">
+  <div class="form-card">
+    <div class="form-intro">
+      <div class="intro-icon">💬</div>
+      <h2>Ask a Question</h2>
+      <p>Submit your query to get help from your instructor or TA.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="query-form">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="title">Query Title *</label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title" 
+          class="form-input" 
+          placeholder="e.g., Question about Assignment 2" 
+          required
+          maxlength="200"
+        >
+        <small class="form-hint">Give your query a clear, descriptive title</small>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Your Question *</label>
+        <textarea 
+          id="message" 
+          name="message" 
+          class="form-textarea" 
+          rows="8"
+          placeholder="Describe your question in detail..."
+          required
+        ></textarea>
+        <small class="form-hint">Provide as much detail as possible to help us answer your question</small>
+      </div>
+
+      <div class="form-group">
+        <label for="attachment">Attachment (Optional)</label>
+        <div class="file-input-wrapper">
+          <input 
+            type="file" 
+            id="attachment" 
+            name="attachment" 
+            class="form-file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            onchange="updateFileName(this)"
+          >
+          <label for="attachment" class="file-label">
+            <span class="file-icon">📎</span>
+            <span class="file-text" id="file-name">Choose file (PDF, Image, or Document)</span>
+          </label>
+        </div>
+        <small class="form-hint">Attach screenshots, PDFs, or documents for reference</small>
+      </div>
+
+      <div class="form-actions">
+        <a href="/queries/{{ course_id }}/" class="cancel-btn">Cancel</a>
+        <button type="submit" class="submit-btn">
+          <span class="btn-icon">📤</span>
+          Submit Query
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title-section {
+  flex: 1;
+}
+
+.course-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.course-semester {
+  font-size: 15px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.back-link {
+  padding: 10px 20px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-link:hover {
+  background: #e9ecef;
+  color: #0b5ed7;
+}
+
+.create-query-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-intro {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.intro-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.form-intro h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.form-intro p {
+  font-size: 15px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.query-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.form-input,
+.form-textarea {
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+.file-input-wrapper {
+  position: relative;
+}
+
+.form-file {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-file:focus + .file-label,
+.file-label:hover {
+  background: #e9ecef;
+  border-color: #0d6efd;
+}
+
+.file-icon {
+  font-size: 24px;
+}
+
+.file-text {
+  font-size: 14px;
+  color: #495057;
+  word-break: break-all;
+}
+
+.form-hint {
+  font-size: 13px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.cancel-btn {
+  padding: 12px 24px;
+  background: #f8f9fa;
+  color: #495057;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 2px solid #e9ecef;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+  color: #1a1a1a;
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 32px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submit-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .course-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .form-card {
+    padding: 24px 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
+
+<script>
+function updateFileName(input) {
+  const fileName = input.files[0] ? input.files[0].name : 'Choose file (PDF, Image, or Document)';
+  document.getElementById('file-name').textContent = fileName;
+}
+</script>
+
+{% endblock %}

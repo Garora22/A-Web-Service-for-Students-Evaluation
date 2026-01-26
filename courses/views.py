@@ -1,7 +1,7 @@
 from collections import OrderedDict, defaultdict
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from .models import CourseProfessor, CourseTA, CourseStudent, Semester
+from .models import Course, CourseProfessor, CourseTA, CourseStudent, Semester
 from content.models import CourseMaterial
 
 
@@ -103,12 +103,22 @@ def professor_course_home(request, course_id):
         )
         return redirect(request.path)
 
+    course = Course.objects.select_related('semester').get(id=course_id)
     materials = CourseMaterial.objects.filter(course_id=course_id)
+    
+    # Calculate stats
+    total_materials = materials.count()
+    published_count = materials.filter(is_published=True).count()
+    unpublished_count = total_materials - published_count
 
     return render(request, 'courses/professor_home.html', {
+        'course': course,
         'materials': materials,
         'content_types': CourseMaterial.CONTENT_TYPE_CHOICES,
-        'course_id': course_id
+        'course_id': course_id,
+        'total_materials': total_materials,
+        'published_count': published_count,
+        'unpublished_count': unpublished_count,
     })
 
 
@@ -118,9 +128,11 @@ def ta_course_home(request, course_id):
     if not CourseTA.objects.filter(course_id=course_id, ta=request.user).exists():
         return redirect('/courses/')
 
-    materials = CourseMaterial.objects.filter(course_id=course_id)
+    course = Course.objects.select_related('semester').get(id=course_id)
+    materials = CourseMaterial.objects.filter(course_id=course_id, is_published=True)
 
     return render(request, 'courses/ta_home.html', {
+        'course': course,
         'materials': materials,
         'course_id': course_id
     })
@@ -131,9 +143,11 @@ def student_course_home(request, course_id):
     if not CourseStudent.objects.filter(course_id=course_id, student=request.user).exists():
         return redirect('/courses/')
 
+    course = Course.objects.select_related('semester').get(id=course_id)
     materials = CourseMaterial.objects.filter(course_id=course_id, is_published=True)
 
     return render(request, 'courses/student_home.html', {
+        'course': course,
         'materials': materials,
         'course_id': course_id
     })

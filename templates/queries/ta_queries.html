@@ -1,0 +1,360 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Course Header Section -->
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">Student Queries</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <a href="/courses/{{ course_id }}/ta/home/" class="back-link">← Back to Course</a>
+</div>
+
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+  <a href="?status=" class="tab {% if not status_filter %}active{% endif %}">
+    📋 All Queries
+  </a>
+  <a href="?status=open" class="tab {% if status_filter == 'open' %}active{% endif %}">
+    🔵 Open
+  </a>
+  <a href="?status=in_progress" class="tab {% if status_filter == 'in_progress' %}active{% endif %}">
+    🟡 In Progress
+  </a>
+  <a href="?status=resolved" class="tab {% if status_filter == 'resolved' %}active{% endif %}">
+    ✅ Resolved
+  </a>
+</div>
+
+<!-- Queries List -->
+<div class="queries-container">
+  {% if queries %}
+    <div class="queries-list">
+      {% for query in queries %}
+        <a href="/queries/{{ course_id }}/query/{{ query.id }}/" class="query-card">
+          <div class="query-left">
+            <div class="student-avatar">
+              👤
+            </div>
+            <div class="query-info">
+              <h3 class="query-title">{{ query.title }}</h3>
+              <div class="query-meta">
+                <span class="student-name">
+                  <strong>{{ query.student.get_full_name|default:query.student.username }}</strong>
+                </span>
+                <span class="query-date">• {{ query.created_at|date:"M d, Y" }}</span>
+                <span class="message-count">• {{ query.messages.count }} message{{ query.messages.count|pluralize }}</span>
+              </div>
+              {% if query.messages.last %}
+                <div class="last-message">
+                  <strong>{{ query.messages.last.sender.get_full_name|default:query.messages.last.sender.username }}:</strong>
+                  {{ query.messages.last.message|truncatewords:20 }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="query-right">
+            <span class="status-badge status-{{ query.status }}">
+              {% if query.status == 'open' %}
+                🔵 Open
+              {% elif query.status == 'in_progress' %}
+                🟡 In Progress
+              {% else %}
+                ✅ Resolved
+              {% endif %}
+            </span>
+            <div class="updated-time">
+              Updated<br>{{ query.updated_at|timesince }} ago
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <h3>No Queries Found</h3>
+      {% if status_filter %}
+        <p>There are no queries with "{{ status_filter|title }}" status.</p>
+        <a href="?" class="view-all-btn">View All Queries</a>
+      {% else %}
+        <p>Students haven't raised any queries yet.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title-section {
+  flex: 1;
+}
+
+.course-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.course-semester {
+  font-size: 15px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.back-link {
+  padding: 10px 20px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-link:hover {
+  background: #e9ecef;
+  color: #0b5ed7;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #495057;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.tab.active {
+  background: #0d6efd;
+  border-color: #0d6efd;
+  color: white;
+}
+
+.queries-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.queries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.query-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.query-card:hover {
+  border-color: #0d6efd;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.query-left {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.student-avatar {
+  width: 48px;
+  height: 48px;
+  background: #e9ecef;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.query-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.query-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.query-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.student-name {
+  color: #495057;
+}
+
+.last-message {
+  font-size: 14px;
+  color: #6c757d;
+  line-height: 1.5;
+  padding-top: 8px;
+  border-top: 1px solid #dee2e6;
+  margin-top: 8px;
+}
+
+.last-message strong {
+  color: #1a1a1a;
+}
+
+.query-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-open {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.status-in_progress {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-resolved {
+  background: #d1f4e0;
+  color: #0f5132;
+}
+
+.updated-time {
+  font-size: 12px;
+  color: #6c757d;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.empty-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0 0 24px 0;
+}
+
+.view-all-btn {
+  display: inline-block;
+  padding: 12px 32px;
+  background: #0d6efd;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+  background: #0b5ed7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+@media (max-width: 768px) {
+  .course-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .query-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .query-left {
+    width: 100%;
+  }
+
+  .query-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .updated-time {
+    text-align: left;
+  }
+}
+</style>
+
+{% endblock %}
