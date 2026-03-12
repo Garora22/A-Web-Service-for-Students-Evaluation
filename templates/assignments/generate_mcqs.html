@@ -1,0 +1,167 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">Generate MCQs</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }} — {{ assignment.title }}</p>
+  </div>
+  <div class="header-actions">
+    <a href="/assignments/{{ course_id }}/professor/" class="back-link">← Back to Assignments</a>
+  </div>
+</div>
+
+<div class="form-card">
+  {% if error %}
+    <div class="error-banner">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" class="mcq-form">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label for="topic">Topic / focus area (optional)</label>
+      <input
+        id="topic"
+        name="topic"
+        type="text"
+        class="form-input"
+        placeholder="e.g., Dynamic Programming basics"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="num_questions">Number of questions</label>
+      <input
+        id="num_questions"
+        name="num_questions"
+        type="number"
+        min="1"
+        max="20"
+        value="5"
+        class="form-input"
+      />
+      <small class="form-hint">We currently allow between 1 and 20 questions per generation.</small>
+    </div>
+
+    <button type="submit" class="primary-btn">
+      Generate with Gemma 3 (Ollama)
+    </button>
+  </form>
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.back-link {
+  padding: 10px 18px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.back-link:hover { background: #e9ecef; color: #0b5ed7; }
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  max-width: 800px;
+}
+
+.mcq-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.primary-btn {
+  padding: 12px 20px;
+  background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+}
+.primary-btn:hover { background: #0b5ed7; transform: translateY(-1px); }
+
+.error-banner {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #ffe5e5;
+  color: #842029;
+  font-size: 14px;
+}
+</style>
+
+{% endblock %}
+

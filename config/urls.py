@@ -28,6 +28,7 @@ urlpatterns = [
     path('courses/', include('courses.urls')),
     path('content/', include('content.urls')),
     path('queries/', include('queries.urls')),
+    path('assignments/', include('assignments.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,268 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">{{ assignment.title }}</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <div class="header-actions">
+    <a href="/assignments/{{ course_id }}/student/" class="back-link">← Back to Assignments</a>
+  </div>
+</div>
+
+<div class="quiz-card">
+  {% if total == 0 %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No questions available</h3>
+      <p>Your instructor has not added questions to this assignment yet.</p>
+    </div>
+  {% else %}
+    {% if score is not None %}
+      <div class="score-banner">
+        You answered {{ correct }} out of {{ total }} correctly ({{ score }}%).
+      </div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      <ol class="question-list">
+        {% for q in questions %}
+          <li class="question-item">
+            <div class="question-text">
+              {{ q.question_text }}
+            </div>
+            <ul class="options-list">
+              <li>
+                <label class="option-label">
+                  <input
+                    type="radio"
+                    name="q_{{ q.id }}"
+                    value="A"
+                    {% if locked %}disabled{% endif %}
+                    {% if q.answer and q.answer.selected_option == "A" %}checked{% endif %}
+                  />
+                  <span class="option-letter">A.</span>
+                  <span class="option-text">{{ q.option_a }}</span>
+                  {% if locked and q.answer %}
+                    {% if q.correct_option == "A" %}
+                      <span class="badge-correct">Correct</span>
+                    {% endif %}
+                    {% if q.answer.selected_option == "A" %}
+                      <span class="badge-yours">Your answer</span>
+                    {% endif %}
+                  {% endif %}
+                </label>
+              </li>
+              <li>
+                <label class="option-label">
+                  <input
+                    type="radio"
+                    name="q_{{ q.id }}"
+                    value="B"
+                    {% if locked %}disabled{% endif %}
+                    {% if q.answer and q.answer.selected_option == "B" %}checked{% endif %}
+                  />
+                  <span class="option-letter">B.</span>
+                  <span class="option-text">{{ q.option_b }}</span>
+                  {% if locked and q.answer %}
+                    {% if q.correct_option == "B" %}
+                      <span class="badge-correct">Correct</span>
+                    {% endif %}
+                    {% if q.answer.selected_option == "B" %}
+                      <span class="badge-yours">Your answer</span>
+                    {% endif %}
+                  {% endif %}
+                </label>
+              </li>
+              <li>
+                <label class="option-label">
+                  <input
+                    type="radio"
+                    name="q_{{ q.id }}"
+                    value="C"
+                    {% if locked %}disabled{% endif %}
+                    {% if q.answer and q.answer.selected_option == "C" %}checked{% endif %}
+                  />
+                  <span class="option-letter">C.</span>
+                  <span class="option-text">{{ q.option_c }}</span>
+                  {% if locked and q.answer %}
+                    {% if q.correct_option == "C" %}
+                      <span class="badge-correct">Correct</span>
+                    {% endif %}
+                    {% if q.answer.selected_option == "C" %}
+                      <span class="badge-yours">Your answer</span>
+                    {% endif %}
+                  {% endif %}
+                </label>
+              </li>
+              <li>
+                <label class="option-label">
+                  <input
+                    type="radio"
+                    name="q_{{ q.id }}"
+                    value="D"
+                    {% if locked %}disabled{% endif %}
+                    {% if q.answer and q.answer.selected_option == "D" %}checked{% endif %}
+                  />
+                  <span class="option-letter">D.</span>
+                  <span class="option-text">{{ q.option_d }}</span>
+                  {% if locked and q.answer %}
+                    {% if q.correct_option == "D" %}
+                      <span class="badge-correct">Correct</span>
+                    {% endif %}
+                    {% if q.answer.selected_option == "D" %}
+                      <span class="badge-yours">Your answer</span>
+                    {% endif %}
+                  {% endif %}
+                </label>
+              </li>
+            </ul>
+          </li>
+        {% endfor %}
+      </ol>
+
+      {% if not locked %}
+        <button type="submit" class="primary-btn">Submit Answers</button>
+      {% endif %}
+    </form>
+  {% endif %}
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.back-link {
+  padding: 10px 18px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.back-link:hover { background: #e9ecef; color: #0b5ed7; }
+
+.quiz-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.score-banner {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #d1f4e0;
+  color: #0f5132;
+  font-size: 14px;
+}
+
+.question-list {
+  padding-left: 20px;
+}
+
+.question-item {
+  margin-bottom: 18px;
+}
+
+.question-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.options-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.option-letter {
+  font-weight: 600;
+}
+
+.option-text {
+  flex: 1;
+}
+
+.badge-correct,
+.badge-yours {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-correct {
+  background: #d1f4e0;
+  color: #0f5132;
+}
+
+.badge-yours {
+  background: #e7f3ff;
+  color: #0d6efd;
+}
+
+.primary-btn {
+  margin-top: 10px;
+  padding: 10px 18px;
+  background: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 12px;
+}
+.empty-icon { font-size: 46px; margin-bottom: 10px; }
+.empty-state h3 { margin: 0 0 6px 0; font-size: 18px; }
+.empty-state p { margin: 0; color: #6c757d; }
+</style>
+
+{% endblock %}
+

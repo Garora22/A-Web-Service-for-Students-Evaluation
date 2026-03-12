@@ -1,0 +1,266 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">{{ course.code }} - {{ course.name }}</h1>
+    <p class="course-semester">{{ course.semester }}</p>
+  </div>
+  <div class="header-actions">
+    <a href="/courses/{{ course_id }}/student/home/" class="back-link">← Back to Course</a>
+  </div>
+</div>
+
+<div class="assignments-layout">
+  <div class="section-card">
+    <div class="section-header">
+      <h2>🟢 Active Assignments</h2>
+      <span class="count-badge">{{ active_assignments|length }}</span>
+    </div>
+
+    {% if active_assignments %}
+      <div class="assignment-list">
+        {% for a in active_assignments %}
+          <div class="assignment-item">
+            <div class="assignment-main">
+              <div class="assignment-title">{{ a.title }}</div>
+              {% if a.description %}
+                <div class="assignment-desc">{{ a.description }}</div>
+              {% endif %}
+              <div class="assignment-actions">
+                {% if a.total_answers %}
+                  <span class="score-pill">
+                    Score: {{ a.correct_answers }}/{{ a.questions.count }} correct
+                  </span>
+                  <a href="/assignments/{{ course_id }}/student/{{ a.id }}/take/" class="small-btn secondary">
+                    View Attempt
+                  </a>
+                {% elif a.questions.count %}
+                  <a href="/assignments/{{ course_id }}/student/{{ a.id }}/take/" class="small-btn">
+                    Take Test
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+            <div class="assignment-meta">
+              <div class="meta-label">Due</div>
+              <div class="meta-value">{{ a.due_date }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No active assignments</h3>
+        <p>Check back later for new assignments.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <h2>🕘 Past Assignments</h2>
+      <span class="count-badge">{{ past_assignments|length }}</span>
+    </div>
+
+    {% if past_assignments %}
+      <div class="assignment-list">
+        {% for a in past_assignments %}
+          <div class="assignment-item past">
+            <div class="assignment-main">
+              <div class="assignment-title">{{ a.title }}</div>
+              {% if a.description %}
+                <div class="assignment-desc">{{ a.description }}</div>
+              {% endif %}
+            </div>
+            <div class="assignment-meta">
+              <div class="meta-label">Due</div>
+              <div class="meta-value">{{ a.due_date }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🗂️</div>
+        <h3>No past assignments</h3>
+        <p>Once deadlines pass, assignments will appear here.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.back-link {
+  padding: 10px 18px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.back-link:hover { background: #e9ecef; color: #0b5ed7; }
+
+.assignments-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.section-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #f1f3f5;
+}
+
+.section-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.count-badge {
+  font-size: 13px;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.assignment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assignment-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e9ecef;
+}
+
+.assignment-item.past {
+  opacity: 0.85;
+}
+
+.assignment-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.assignment-desc {
+  font-size: 13px;
+  color: #6c757d;
+  max-width: 700px;
+}
+
+.assignment-actions {
+  margin-top: 10px;
+}
+
+.small-btn {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-decoration: none;
+  background: #0d6efd;
+  color: #ffffff;
+}
+
+.small-btn.secondary {
+  background: #6c757d;
+}
+
+.score-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: #d1f4e0;
+  color: #0f5132;
+  font-weight: 600;
+}
+
+.assignment-meta {
+  min-width: 150px;
+  text-align: right;
+}
+
+.meta-label {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.meta-value {
+  font-size: 13px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 12px;
+}
+.empty-icon { font-size: 46px; margin-bottom: 10px; }
+.empty-state h3 { margin: 0 0 6px 0; font-size: 18px; }
+.empty-state p { margin: 0; color: #6c757d; }
+
+@media (max-width: 768px) {
+  .assignment-item { flex-direction: column; }
+  .assignment-meta { text-align: left; min-width: unset; }
+}
+</style>
+
+{% endblock %}
+

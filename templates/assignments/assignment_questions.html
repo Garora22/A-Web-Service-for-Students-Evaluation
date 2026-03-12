@@ -1,0 +1,142 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">MCQs for {{ assignment.title }}</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <div class="header-actions">
+    <a href="/assignments/{{ course_id }}/professor/" class="back-link">← Back to Assignments</a>
+  </div>
+</div>
+
+<div class="questions-card">
+  {% if questions %}
+    <ol class="question-list">
+      {% for q in questions %}
+        <li class="question-item">
+          <div class="question-text">
+            {{ q.question_text }}
+          </div>
+          <ul class="options-list">
+            <li{% if q.correct_option == "A" %} class="correct"{% endif %}>A. {{ q.option_a }}</li>
+            <li{% if q.correct_option == "B" %} class="correct"{% endif %}>B. {{ q.option_b }}</li>
+            <li{% if q.correct_option == "C" %} class="correct"{% endif %}>C. {{ q.option_c }}</li>
+            <li{% if q.correct_option == "D" %} class="correct"{% endif %}>D. {{ q.option_d }}</li>
+          </ul>
+          {% if q.explanation %}
+            <div class="explanation">
+              <strong>Explanation:</strong> {{ q.explanation }}
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No questions yet</h3>
+      <p>Use the “Generate MCQs” button on the assignments page to create questions.</p>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.back-link {
+  padding: 10px 18px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.back-link:hover { background: #e9ecef; color: #0b5ed7; }
+
+.questions-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.question-list {
+  padding-left: 20px;
+}
+
+.question-item {
+  margin-bottom: 18px;
+}
+
+.question-text {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.options-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 6px 0;
+}
+
+.options-list li {
+  font-size: 14px;
+  padding: 2px 0;
+}
+
+.options-list li.correct {
+  font-weight: 700;
+  color: #0f5132;
+}
+
+.explanation {
+  font-size: 13px;
+  color: #495057;
+  background: #f8f9fa;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 12px;
+}
+.empty-icon { font-size: 46px; margin-bottom: 10px; }
+.empty-state h3 { margin: 0 0 6px 0; font-size: 18px; }
+.empty-state p { margin: 0; color: #6c757d; }
+</style>
+
+{% endblock %}
+
