@@ -20,8 +20,23 @@
     </div>
   {% endif %}
 
-  <form method="post" class="mcq-form">
+  <form method="post" class="mcq-form" enctype="multipart/form-data">
     {% csrf_token %}
+
+    <div class="form-group">
+      <label for="source_pdf">Source PDF (optional)</label>
+      <input
+        id="source_pdf"
+        name="source_pdf"
+        type="file"
+        accept=".pdf,application/pdf"
+        class="form-input"
+      />
+      <small class="form-hint">
+        Upload lecture notes or a chapter as PDF. Questions will be grounded in this text.
+        You can combine with a topic below to narrow the focus. If you omit the PDF, generation uses topic + course name only (same as before).
+      </small>
+    </div>
 
     <div class="form-group">
       <label for="topic">Topic / focus area (optional)</label>

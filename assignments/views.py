@@ -208,11 +208,14 @@ def generate_mcqs(request, course_id: int, assignment_id: int):
         if num_questions > 20:
             num_questions = 20
 
+        pdf_file = request.FILES.get("source_pdf")
+
         try:
             generate_mcqs_for_assignment(
                 assignment=assignment,
                 num_questions=num_questions,
                 topic=topic,
+                pdf_file=pdf_file,
             )
             return redirect(f"/assignments/{course_id}/professor/{assignment.id}/questions/")
         except Exception as exc:  # noqa: BLE001
