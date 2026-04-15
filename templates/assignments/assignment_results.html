@@ -1,0 +1,122 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="course-detail-header">
+  <div class="course-title-section">
+    <h1 class="course-title">Results — {{ assignment.title }}</h1>
+    <p class="course-semester">{{ course.code }} - {{ course.name }}</p>
+  </div>
+  <div class="header-actions">
+    <a href="/assignments/{{ course_id }}/professor/" class="back-link">← Back to Assignments</a>
+  </div>
+</div>
+
+<div class="results-card">
+  {% if not results %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No submissions yet</h3>
+      <p>Once students submit this test, their scores will appear here.</p>
+    </div>
+  {% else %}
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Correct</th>
+          <th>Total</th>
+          <th>Percent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in results %}
+          <tr>
+            <td>{{ row.student.get_full_name|default:row.student.username }}</td>
+            <td>{{ row.correct }}</td>
+            <td>{{ row.total }}</td>
+            <td>{{ row.percent }}%</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+
+<style>
+.course-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.course-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px 0;
+}
+
+.course-semester {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.back-link {
+  padding: 10px 18px;
+  background: #f8f9fa;
+  color: #0d6efd;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.back-link:hover { background: #e9ecef; color: #0b5ed7; }
+
+.results-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e9ecef;
+  text-align: left;
+  font-size: 14px;
+}
+
+.results-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 12px;
+}
+.empty-icon { font-size: 46px; margin-bottom: 10px; }
+.empty-state h3 { margin: 0 0 6px 0; font-size: 18px; }
+.empty-state p { margin: 0; color: #6c757d; }
+</style>
+
+{% endblock %}
+

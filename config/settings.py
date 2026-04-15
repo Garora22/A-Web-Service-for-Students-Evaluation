@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'courses',
     'content',
     'queries',
+    'assignments',
 ]
 
 MIDDLEWARE = [
