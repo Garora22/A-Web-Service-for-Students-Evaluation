@@ -25,18 +25,18 @@
       <thead>
         <tr>
           <th>Student</th>
-          <th>Correct</th>
-          <th>Total</th>
+          <th>Marks</th>
           <th>Percent</th>
+          <th>Submitted</th>
         </tr>
       </thead>
       <tbody>
         {% for row in results %}
           <tr>
             <td>{{ row.student.get_full_name|default:row.student.username }}</td>
-            <td>{{ row.correct }}</td>
-            <td>{{ row.total }}</td>
+            <td>{{ row.earned }}/{{ row.total_marks }}</td>
             <td>{{ row.percent }}%</td>
+            <td>{% if row.submitted_at %}{{ row.submitted_at }}{% else %}-{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>

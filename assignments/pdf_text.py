@@ -31,7 +31,7 @@ def extract_text_from_pdf(file_obj: BinaryIO) -> str:
     return "\n\n".join(parts)
 
 
-def chunk_text(text: str, max_size: int = 4500, max_chunks: int = 10) -> list[str]:
+def chunk_text(text: str, max_size: int = 4500, max_chunks: int = 20) -> list[str]:
     """Split long text into bounded chunks for LLM context limits."""
     text = text.strip()
     if not text:
