@@ -1,5 +1,7 @@
 """Extract plain text from uploaded PDF files for MCQ generation."""
 
+from __future__ import annotations
+
 from io import BytesIO
 from typing import BinaryIO
 
