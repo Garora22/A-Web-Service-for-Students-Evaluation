@@ -1,6 +1,6 @@
-#!/bin/bash
+ #!/bin/bash
 
-# Deployment script for Django application
+# Deployment script for Django application (simple runserver mode)
 # Usage: ./deploy.sh
 
 set -e
@@ -23,13 +23,14 @@ pip install -r requirements.txt
 echo "🗄️  Running database migrations..."
 python manage.py migrate
 
-# Collect static files
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput
+# Stop old runserver process if running
+echo "🛑 Stopping previous runserver process (if any)..."
+pkill -f "manage.py runserver 0.0.0.0:8000" || true
 
-# Restart application service
-echo "♻️  Restarting application..."
-sudo systemctl restart django-app
+# Start runserver in background
+echo "▶️  Starting runserver in background..."
+nohup python manage.py runserver 0.0.0.0:8000 > server.log 2>&1 &
 
 echo "✅ Deployment completed successfully!"
-echo "🌐 Your website should now be updated."
+echo "🌐 App should be available at: http://<server-ip>:8000"
+echo "📄 Logs: tail -f server.log"

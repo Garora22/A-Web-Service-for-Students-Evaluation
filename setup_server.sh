@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# Initial server setup script
-# Run this ONCE on your college server after cloning the repository
+# Initial server setup script (simple runserver mode)
+# Run this ONCE on your server after cloning the repository
 # Usage: bash setup_server.sh
 
 set -e
 
-echo "🏗️  Setting up Django application on server..."
+echo "🏗️  Setting up Django app (simple mode)..."
 
 # Check if running on Linux
 if [[ "$OSTYPE" != "linux-gnu"* ]]; then
     echo "⚠️  Warning: This script is designed for Linux servers"
 fi
 
-# Update system
-echo "📦 Updating system packages..."
+# Update system and install Python tools
+echo "📦 Installing required packages..."
 sudo apt update
-
-# Install required packages
-echo "🔧 Installing required packages..."
-sudo apt install -y python3-pip python3-venv nginx
+sudo apt install -y python3-pip python3-venv
 
 # Create virtual environment
 echo "🐍 Creating virtual environment..."
@@ -46,13 +43,6 @@ echo "🗄️  Running database migrations..."
 python manage.py migrate
 
 # Create static files directory
-echo "📁 Creating static files directory..."
-mkdir -p staticfiles
-
-# Collect static files
-echo "📁 Collecting static files..."
-python manage.py collectstatic --noinput
-
 # Create media directory
 mkdir -p media
 
@@ -67,8 +57,11 @@ echo "2. Create a superuser for Django admin"
 echo "   source venv/bin/activate"
 echo "   python manage.py createsuperuser"
 echo ""
-echo "3. Set up Gunicorn service (see DEPLOYMENT.md)"
+echo "3. Start server:"
+echo "   source venv/bin/activate"
+echo "   python manage.py runserver 0.0.0.0:8000"
 echo ""
-echo "4. Configure Nginx (see DEPLOYMENT.md)"
+echo "4. To keep it running after logout:"
+echo "   nohup python manage.py runserver 0.0.0.0:8000 > server.log 2>&1 &"
 echo ""
 echo "📖 Full instructions are in DEPLOYMENT.md"
