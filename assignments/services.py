@@ -130,7 +130,7 @@ def _build_context_chunks(
     topic: str,
     professor_comment: str,
     material_ids: Optional[Sequence[int]],
-) -> tuple[List[str], bool]:
+) -> Tuple[List[str], bool]:
     """
     Returns (chunks, from_source_document).
     When course PDF materials are selected, excerpts are used; course name/code omitted.
