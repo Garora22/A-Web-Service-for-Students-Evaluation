@@ -5,7 +5,8 @@
 
 **Undergraduate Project (UGP)**
 **Institute**: Indian Institute of Technology Kanpur (IITK)
-**Supervisor**: Professor Indranil Saha
+**Supervisor**: Professor Indranil Saha(CSE)
+**EE Co-Supervisor**: Professor Ketan Rajawat(EE)
 **Developed by**:
 - Snehasis Satapathy (Roll No. 221070)
 - Gautam Arora (Roll No. 220405)
@@ -1063,4 +1064,4 @@ The five Django apps (users, courses, content, assignments, queries) provide a c
 ---
 
 *Report prepared by Snehasis Satapathy (221070) and Gautam Arora (220405)*
-*Under the supervision of Professor Indranil Saha, IIT Kanpur*
+*Under the supervision of Professor Indranil Saha and Professor Ketan Rajawat, IIT Kanpur*
