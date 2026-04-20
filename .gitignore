@@ -1,12 +1,8 @@
-.env
 .venv/
 venv/
 __pycache__/
 *.pyc
 *.pyo
-db.sqlite3
-media/
 staticfiles/
 *.log
 .DS_Store
-gunicorn.sock
