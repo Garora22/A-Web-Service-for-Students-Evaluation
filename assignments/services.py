@@ -1,6 +1,9 @@
+import random
+from collections import defaultdict
 from typing import List, Optional, Sequence, Tuple
 
 from django.db import transaction
+from django.utils import timezone
 
 from content.models import CourseMaterial, CourseMaterialText
 from courses.models import Course
@@ -174,68 +177,34 @@ def generate_mcqs_for_assignment(
         material_ids,
     )
     easy_n, medium_n, hard_n = _split_counts(num_questions)
-    # generate 2x pool, then downsample to target counts (keeps difficulty split)
-    pool_easy, pool_medium, pool_hard = easy_n * 2, medium_n * 2, hard_n * 2
-    llm_questions: List[dict] = []
-    if pool_easy:
-        qs = generate_mcqs_with_ollama(
-            context_chunks=context_chunks + [f"DIFFICULTY: easy (basic recall/definition)"],
-            num_questions=pool_easy,
-            from_source_document=from_source_document,
-        )
-        for q in qs:
-            q["_difficulty"] = "easy"
-            q["_marks"] = 1
-        llm_questions.extend(qs)
-    if pool_medium:
-        qs = generate_mcqs_with_ollama(
-            context_chunks=context_chunks + [f"DIFFICULTY: medium (conceptual understanding/application)"],
-            num_questions=pool_medium,
-            from_source_document=from_source_document,
-        )
-        for q in qs:
-            q["_difficulty"] = "medium"
-            q["_marks"] = 2
-        llm_questions.extend(qs)
-    if pool_hard:
-        qs = generate_mcqs_with_ollama(
-            context_chunks=context_chunks + [f"DIFFICULTY: hard (tricky/edge cases, deeper reasoning)"],
-            num_questions=pool_hard,
-            from_source_document=from_source_document,
-        )
-        for q in qs:
-            q["_difficulty"] = "hard"
-            q["_marks"] = 4
-        llm_questions.extend(qs)
 
-    # Deduplicate by question text (best-effort), then sample per difficulty back to target counts
-    from collections import defaultdict
-    import random
+    # Single Ollama call for all questions (avoids 3× sequential blocking requests)
+    llm_questions: List[dict] = generate_mcqs_with_ollama(
+        context_chunks=context_chunks,
+        num_questions=num_questions,
+        from_source_document=from_source_document,
+    )
 
-    buckets = defaultdict(list)
-    seen = set()
+    # Deduplicate by question text
+    seen: set = set()
+    unique: List[dict] = []
     for q in llm_questions:
-        qt = (q.get("question") or "").strip()
-        key = (q.get("_difficulty"), qt.lower())
-        if not qt or key in seen:
-            continue
-        seen.add(key)
-        buckets[q.get("_difficulty")].append(q)
+        qt = (q.get("question") or "").strip().lower()
+        if qt and qt not in seen:
+            seen.add(qt)
+            unique.append(q)
 
-    rnd = random.Random(f"{assignment.id}:{timezone.now().timestamp()}")
-    final = []
-    for diff, n in (("easy", easy_n), ("medium", medium_n), ("hard", hard_n)):
-        items = buckets.get(diff, [])
-        if len(items) <= n:
-            final.extend(items)
-        else:
-            final.extend(rnd.sample(items, n))
-
-    llm_questions = final
+    # Assign difficulty and marks based on 40/30/30 split
+    difficulty_marks: List[Tuple[str, int]] = (
+        [("easy", 1)] * easy_n
+        + [("medium", 2)] * medium_n
+        + [("hard", 4)] * hard_n
+    )
 
     created = 0
     with transaction.atomic():
-        for q in llm_questions:
+        for i, q in enumerate(unique):
+            diff, marks = difficulty_marks[i] if i < len(difficulty_marks) else ("easy", 1)
             options = q.get("options") or {}
             AssignmentQuestion.objects.create(
                 assignment=assignment,
@@ -246,8 +215,8 @@ def generate_mcqs_for_assignment(
                 option_d=options.get("D", ""),
                 correct_option=q.get("correct", "A"),
                 explanation=q.get("explanation", ""),
-                difficulty=q.get("_difficulty", "easy"),
-                marks=int(q.get("_marks", 1)),
+                difficulty=diff,
+                marks=marks,
             )
             created += 1
 
