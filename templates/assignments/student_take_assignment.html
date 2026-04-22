@@ -62,7 +62,7 @@
           {% elif percent >= 50 %}
             <span class="feedback-okay">You've passed, but there's room for improvement</span>
           {% else %}
-            <span class="feedback-poor">Consider reviewing the material and trying again</span>
+            <span class="feedback-poor">Consider reviewing the material/span>
           {% endif %}
         </div>
       </div>
@@ -406,7 +406,6 @@
     var s = diff % 60;
     timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     if (diff <= 0) {
-      // Let server enforce lock; this is just UX.
       timerBox.querySelector('.meta-value').style.color = '#dc3545';
     } else {
       setTimeout(tick, 1000);

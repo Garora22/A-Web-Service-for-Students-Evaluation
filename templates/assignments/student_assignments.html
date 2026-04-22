@@ -32,7 +32,7 @@
               <div class="assignment-actions">
                 {% if a.total_answers %}
                   <span class="score-pill">
-                    Score: {{ a.correct_answers }}/{{ a.questions.count }} correct
+                    Score: {{ a.earned_marks }}/{{ a.total_marks }} 
                   </span>
                   <a href="/assignments/{{ course_id }}/student/{{ a.id }}/take/" class="small-btn secondary">
                     View Attempt

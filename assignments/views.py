@@ -65,6 +65,37 @@ def student_assignments(request, course_id: int):
     )
     active_assignments = qs.filter(due_date__gte=now).order_by("due_date")
     past_assignments = qs.filter(due_date__lt=now).order_by("-due_date")
+    attempts = StudentAttempt.objects.filter(
+        student=request.user, 
+        assignment__course_id=course_id
+    )
+    attempt_map = {att.assignment_id: att for att in attempts}
+
+    # 2. Evaluate QuerySets to lists
+    active_assignments = list(active_assignments)
+    past_assignments = list(past_assignments)
+
+    # 3. Attach the exact subset marks
+    for a in active_assignments + past_assignments:
+        att = attempt_map.get(a.id)
+        
+        if att and att.submitted_at:
+            # If submitted, use the EXACT total from their specific random subset
+            a.earned_marks = att.score
+            a.total_marks = att.total_marks
+        else:
+            # If not submitted, calculate how many questions they WILL get based on your logic
+            pool_size = len(a.questions.all())
+            if pool_size > 0:
+                num_to_select = min(5, max(1, pool_size // 2))
+                
+                # Assuming standard MCQ (all questions have equal marks)
+                avg_marks = sum(q.marks for q in a.questions.all()) / pool_size
+                a.total_marks = int(num_to_select * avg_marks)
+            else:
+                a.total_marks = 0
+            
+            a.earned_marks = 0
 
     return render(
         request,
@@ -311,23 +342,27 @@ def assignment_results(request, course_id: int, assignment_id: int):
         .order_by("student__username")
     )
 
-    total_marks = sum(
+    # This represents the total marks of ALL questions in the pool.
+    # We keep it just in case your HTML template uses it for a header (e.g. "Question Pool Marks: 50")
+    pool_total_marks = sum(
         q.marks for q in AssignmentQuestion.objects.filter(assignment=assignment, is_active=True)
     )
 
     results = []
     for att in attempts:
-        percent = int(att.score * 100 / total_marks) if total_marks else 0
+        # FIX: Calculate percentage based on the exact marks this student was tested on
+        percent = int(att.score * 100 / att.total_marks) if att.total_marks else 0
+        
         results.append(
             {
                 "student": att.student,
                 "earned": att.score,
-                "total_marks": total_marks,
+                "total_marks": att.total_marks,  # FIX: Use their specific subset total
                 "percent": percent,
                 "submitted_at": att.submitted_at,
                 "time_taken_min": (
                     int((att.submitted_at - att.started_at).total_seconds() / 60)
-                    if att.submitted_at
+                    if att.submitted_at and hasattr(att, 'started_at') and att.started_at
                     else None
                 ),
             }
@@ -341,7 +376,7 @@ def assignment_results(request, course_id: int, assignment_id: int):
             "course_id": course_id,
             "assignment": assignment,
             "results": results,
-            "total_marks": total_marks,
+            "total_marks": pool_total_marks, # Kept so your template doesn't break
             "nav_active": "courses",
         },
     )
