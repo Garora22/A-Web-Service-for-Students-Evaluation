@@ -3,7 +3,6 @@
 
 {% block content %}
 
-<!-- Course Header Section -->
 <div class="course-detail-header">
   <div class="course-title-section">
     <h1 class="course-title">{{ query.title }}</h1>
@@ -18,7 +17,6 @@
   </div>
 </div>
 
-<!-- Query Info Bar -->
 <div class="query-info-bar">
   <div class="query-info-left">
     <span class="info-item">
@@ -52,9 +50,7 @@
   {% endif %}
 </div>
 
-<!-- Chat Container -->
 <div class="chat-container">
-  <!-- Messages List -->
   <div class="messages-list" id="messages-list">
     {% for message in messages %}
       <div class="message {% if message.sender == request.user %}message-own{% else %}message-other{% endif %}">
@@ -94,7 +90,6 @@
     {% endfor %}
   </div>
 
-  <!-- Message Input -->
   <div class="message-input-container">
     <form method="post" enctype="multipart/form-data" class="message-form" id="message-form">
       {% csrf_token %}
@@ -548,20 +543,17 @@
 </style>
 
 <script>
-// Auto-scroll to bottom on page load
 window.addEventListener('load', function() {
   const messagesList = document.getElementById('messages-list');
   messagesList.scrollTop = messagesList.scrollHeight;
 });
 
-// Auto-resize textarea
 const textarea = document.getElementById('message-input');
 textarea.addEventListener('input', function() {
   this.style.height = 'auto';
   this.style.height = this.scrollHeight + 'px';
 });
 
-// Show attachment preview
 function showAttachmentPreview(input) {
   const preview = document.getElementById('attachment-preview');
   const previewText = preview.querySelector('.preview-text');
@@ -573,7 +565,6 @@ function showAttachmentPreview(input) {
   }
 }
 
-// Remove attachment
 function removeAttachment() {
   const input = document.getElementById('attachment-input');
   const preview = document.getElementById('attachment-preview');
@@ -582,7 +573,6 @@ function removeAttachment() {
   preview.style.display = 'none';
 }
 
-// Submit form on Enter (but allow Shift+Enter for new line)
 textarea.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();

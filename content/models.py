@@ -26,18 +26,13 @@ class CourseMaterial(models.Model):
 
 
 class CourseMaterialText(models.Model):
-    """
-    Cached extracted text for a CourseMaterial file.
-    This lets us avoid re-parsing PDFs/PPTX each time we generate MCQs.
-    """
-
     material = models.OneToOneField(
         CourseMaterial,
         on_delete=models.CASCADE,
         related_name="extracted_text",
     )
     file_name = models.CharField(max_length=500, blank=True)
-    kind = models.CharField(max_length=20, blank=True)  # pdf/pptx/text
+    kind = models.CharField(max_length=20, blank=True) 
     text = models.TextField(blank=True)
     status = models.CharField(
         max_length=20,

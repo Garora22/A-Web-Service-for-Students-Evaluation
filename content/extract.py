@@ -16,7 +16,7 @@ def extract_and_cache_material_text(material: CourseMaterial) -> CourseMaterialT
         kind = ""
         status = "unsupported"
         error_message = str(exc)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  
         text = ""
         kind = ""
         status = "error"

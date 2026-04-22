@@ -63,8 +63,8 @@ html, body {
 
 .login-block {
   width: 100%;
-  max-width: 760px;      /* wider card */
-  padding: 72px;         /* more breathing room */
+  max-width: 760px;      
+  padding: 72px;      
   background: #ffffff;
   border-radius: 6px;
   box-shadow: 0 0 30px rgba(0,0,0,0.08);

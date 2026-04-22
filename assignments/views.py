@@ -20,10 +20,6 @@ from .services import generate_mcqs_for_assignment, select_questions_for_student
 
 @login_required
 def course_assignments(request, course_id: int):
-    """
-    Single entrypoint used by the "Assignments" button.
-    Redirects to the correct page based on course membership/role.
-    """
     user = request.user
 
     if CourseProfessor.objects.filter(course_id=course_id, professor=user).exists():
@@ -71,25 +67,20 @@ def student_assignments(request, course_id: int):
     )
     attempt_map = {att.assignment_id: att for att in attempts}
 
-    # 2. Evaluate QuerySets to lists
     active_assignments = list(active_assignments)
     past_assignments = list(past_assignments)
 
-    # 3. Attach the exact subset marks
     for a in active_assignments + past_assignments:
         att = attempt_map.get(a.id)
         
         if att and att.submitted_at:
-            # If submitted, use the EXACT total from their specific random subset
             a.earned_marks = att.score
             a.total_marks = att.total_marks
         else:
-            # If not submitted, calculate how many questions they WILL get based on your logic
             pool_size = len(a.questions.all())
             if pool_size > 0:
                 num_to_select = min(5, max(1, pool_size // 2))
                 
-                # Assuming standard MCQ (all questions have equal marks)
                 avg_marks = sum(q.marks for q in a.questions.all()) / pool_size
                 a.total_marks = int(num_to_select * avg_marks)
             else:
@@ -154,7 +145,6 @@ def create_assignment(request, course_id: int):
         duration_minutes = max(1, min(duration_minutes, 300))
 
         if title and due_date_raw:
-            # `datetime-local` comes without timezone; interpret in current timezone.
             naive_due = timezone.datetime.fromisoformat(due_date_raw)
             due_date = timezone.make_aware(naive_due, timezone.get_current_timezone())
 
@@ -281,7 +271,7 @@ def generate_mcqs(request, course_id: int, assignment_id: int):
                 material_ids=material_ids if material_ids else None,
             )
             return redirect(f"/assignments/{course_id}/professor/{assignment.id}/questions/")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  
             error = str(exc)
 
     return render(
@@ -306,7 +296,7 @@ def assignment_questions(request, course_id: int, assignment_id: int):
     assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
     questions = AssignmentQuestion.objects.filter(assignment=assignment, is_active=True)
 
-    # Calculate statistics
+                          
     total_questions = questions.count()
     easy_count = questions.filter(difficulty="easy").count()
     medium_count = questions.filter(difficulty="medium").count()
@@ -342,22 +332,19 @@ def assignment_results(request, course_id: int, assignment_id: int):
         .order_by("student__username")
     )
 
-    # This represents the total marks of ALL questions in the pool.
-    # We keep it just in case your HTML template uses it for a header (e.g. "Question Pool Marks: 50")
     pool_total_marks = sum(
         q.marks for q in AssignmentQuestion.objects.filter(assignment=assignment, is_active=True)
     )
 
     results = []
     for att in attempts:
-        # FIX: Calculate percentage based on the exact marks this student was tested on
         percent = int(att.score * 100 / att.total_marks) if att.total_marks else 0
         
         results.append(
             {
                 "student": att.student,
                 "earned": att.score,
-                "total_marks": att.total_marks,  # FIX: Use their specific subset total
+                "total_marks": att.total_marks, 
                 "percent": percent,
                 "submitted_at": att.submitted_at,
                 "time_taken_min": (
@@ -376,7 +363,7 @@ def assignment_results(request, course_id: int, assignment_id: int):
             "course_id": course_id,
             "assignment": assignment,
             "results": results,
-            "total_marks": pool_total_marks, # Kept so your template doesn't break
+            "total_marks": pool_total_marks, 
             "nav_active": "courses",
         },
     )
@@ -395,7 +382,6 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
     )
     questions_qs = AssignmentQuestion.objects.filter(assignment=assignment, is_active=True)
 
-    # Create (or load) single attempt per student; this also gives us a stable seed for shuffling
     attempt = StudentAttempt.objects.filter(assignment=assignment, student=request.user).first()
     if not attempt:
         seed_src = f"{assignment.id}:{request.user.id}:{timezone.now().timestamp()}"
@@ -415,27 +401,20 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
     submitted = attempt.submitted_at is not None
     locked = submitted or time_up
 
-    # Select subset of questions for this student (5 from the pool)
-    # Use attempt seed to make selection deterministic per student but different per student
     all_questions = list(questions_qs)
     
-    # Use seeded random to select questions
     rnd_selector = random.Random(attempt.seed)
     
-    # Calculate how many questions to select (default 5, or half the pool if pool is smaller)
     num_to_select = min(5, max(1, len(all_questions) // 2))
     
-    # Group by difficulty to maintain ratio
     by_difficulty: Dict[str, List[AssignmentQuestion]] = defaultdict(list)
     for q in all_questions:
         by_difficulty[q.difficulty].append(q)
     
-    # Calculate target distribution
     target_easy = round(num_to_select * 0.4)
     target_medium = round(num_to_select * 0.3)
     target_hard = num_to_select - target_easy - target_medium
     
-    # Randomly select maintaining ratio
     selected_questions = []
     if target_easy > 0:
         sample = rnd_selector.sample(
@@ -458,12 +437,10 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
         )
         selected_questions.extend(sample)
 
-    # Determine shuffled question order per attempt
     questions = selected_questions
     rnd = random.Random(attempt.seed)
     rnd.shuffle(questions)
 
-    # Determine shuffled options per question (value remains original letter)
     for q in questions:
         opts = [("A", q.option_a), ("B", q.option_b), ("C", q.option_c), ("D", q.option_d)]
         rnd2 = random.Random(f"{attempt.seed}:{q.id}")
@@ -498,7 +475,6 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
         attempt.save()
         locked = True
 
-    # Load answers and compute score
     answers = {
         a.question_id: a
         for a in StudentAnswer.objects.filter(
@@ -506,7 +482,6 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
             student=request.user,
         )
     }
-    # Attach answer object to each question for easier template access
     for q in questions:
         q.answer = answers.get(q.id)
     total_questions = len(questions)

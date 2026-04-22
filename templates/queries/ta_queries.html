@@ -3,7 +3,6 @@
 
 {% block content %}
 
-<!-- Course Header Section -->
 <div class="course-detail-header">
   <div class="course-title-section">
     <h1 class="course-title">Student Queries</h1>
@@ -12,7 +11,6 @@
   <a href="/courses/{{ course_id }}/ta/home/" class="back-link">← Back to Course</a>
 </div>
 
-<!-- Filter Tabs -->
 <div class="filter-tabs">
   <a href="?status=" class="tab {% if not status_filter %}active{% endif %}">
     📋 All Queries
@@ -28,7 +26,6 @@
   </a>
 </div>
 
-<!-- Queries List -->
 <div class="queries-container">
   {% if queries %}
     <div class="queries-list">

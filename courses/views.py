@@ -17,7 +17,6 @@ def my_courses(request):
     user = request.user
     role = user.role
 
-    # 1️⃣ Get ALL enrolled courses
     if role == "student":
         enrollments = (
             CourseStudent.objects
@@ -45,7 +44,6 @@ def my_courses(request):
     else:
         courses = []
 
-    # 2️⃣ Get latest 5 semesters globally (THIS WAS MISSING)
     recent_semester_objs = list(
         Semester.objects.order_by("-year_start", "-sem")[:5]
     )
@@ -53,7 +51,6 @@ def my_courses(request):
     recent_semesters = OrderedDict((sem, []) for sem in recent_semester_objs)
     previous_semesters = defaultdict(list)
 
-    # 3️⃣ Attach courses to correct bucket
     for course in courses:
         sem = course.semester
 
@@ -85,7 +82,6 @@ def enter_course(request, course_id):
     if CourseStudent.objects.filter(course_id=course_id, student=user).exists():
         return redirect(f'/courses/{course_id}/student/home/')
 
-    # Not authorized
     return redirect('/courses/')
 
 @login_required
@@ -106,7 +102,6 @@ def professor_course_home(request, course_id):
     course = Course.objects.select_related('semester').get(id=course_id)
     materials = CourseMaterial.objects.filter(course_id=course_id)
     
-    # Calculate stats
     total_materials = materials.count()
     published_count = materials.filter(is_published=True).count()
     unpublished_count = total_materials - published_count

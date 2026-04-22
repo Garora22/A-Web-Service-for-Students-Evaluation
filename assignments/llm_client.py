@@ -107,7 +107,6 @@ def generate_mcqs_with_ollama(
     try:
         parsed = json.loads(raw_text)
     except json.JSONDecodeError:
-        # Try to recover if the model wrapped JSON in text or code fences
         start = raw_text.find("{")
         end = raw_text.rfind("}")
         if start != -1 and end != -1 and end > start:

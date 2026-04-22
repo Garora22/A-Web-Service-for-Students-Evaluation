@@ -1,5 +1,3 @@
-"""Extract plain text from uploaded PDF files for MCQ generation."""
-
 from __future__ import annotations
 
 from io import BytesIO
@@ -7,14 +5,9 @@ from typing import BinaryIO
 
 
 def extract_text_from_pdf(file_obj: BinaryIO) -> str:
-    """
-    Read PDF bytes from a file-like object and return concatenated page text.
-    Raises RuntimeError if pypdf is not installed.
-    Raises ValueError if no text could be extracted.
-    """
     try:
         from pypdf import PdfReader
-    except ImportError as exc:  # pragma: no cover - env dependent
+    except ImportError as exc:  
         raise RuntimeError(
             "PDF support requires 'pypdf'. Install with: pip install pypdf"
         ) from exc
@@ -34,7 +27,6 @@ def extract_text_from_pdf(file_obj: BinaryIO) -> str:
 
 
 def chunk_text(text: str, max_size: int = 4500, max_chunks: int = 20) -> list[str]:
-    """Split long text into bounded chunks for LLM context limits."""
     text = text.strip()
     if not text:
         return []

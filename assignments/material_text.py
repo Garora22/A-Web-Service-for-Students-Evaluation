@@ -1,5 +1,3 @@
-"""Text extraction for different course material file types."""
-
 from __future__ import annotations
 
 from io import BytesIO
@@ -16,13 +14,9 @@ def _ext(name: str) -> str:
 
 
 def extract_text_from_pptx(file_obj: BinaryIO) -> str:
-    """
-    Extract text from PPTX slides (text boxes only).
-    Raises RuntimeError if python-pptx is not installed.
-    """
     try:
         from pptx import Presentation
-    except ImportError as exc:  # pragma: no cover - env dependent
+    except ImportError as exc:
         raise RuntimeError(
             "PPTX support requires 'python-pptx'. Install with: pip install python-pptx"
         ) from exc
@@ -48,15 +42,11 @@ def extract_text_from_plain_text(file_obj: BinaryIO) -> str:
         file_obj.seek(0)
     try:
         return raw.decode("utf-8", errors="ignore")
-    except Exception:  # noqa: BLE001
+    except Exception:
         return ""
 
 
 def extract_text_from_material(filename: str, file_obj: BinaryIO) -> tuple[str, str]:
-    """
-    Returns (text, kind) where kind is a short string like 'pdf'/'pptx'/'text'.
-    Raises ValueError for unsupported types.
-    """
     ext = _ext(filename)
     if ext == ".pdf":
         return extract_text_from_pdf(file_obj), "pdf"

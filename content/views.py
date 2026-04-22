@@ -7,14 +7,12 @@ from .models import CourseMaterial
 def delete_material(request, material_id):
     material = get_object_or_404(CourseMaterial, id=material_id)
 
-    # security: only course professor can delete
     if not CourseProfessor.objects.filter(
         course=material.course,
         professor=request.user
     ).exists():
         return redirect('/courses/')
 
-    # delete file from disk + DB
     material.file.delete(save=False)
     material.delete()
 
