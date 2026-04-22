@@ -15,11 +15,37 @@
 
 <div class="questions-card">
   {% if questions %}
+    <div class="questions-stats">
+      <div class="stat-item">
+        <span class="stat-label">Total Questions:</span>
+        <span class="stat-value">{{ total_questions }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Easy:</span>
+        <span class="stat-value">{{ easy_count }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Medium:</span>
+        <span class="stat-value">{{ medium_count }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Hard:</span>
+        <span class="stat-value">{{ hard_count }}</span>
+      </div>
+    </div>
     <ol class="question-list">
       {% for q in questions %}
         <li class="question-item">
-          <div class="question-text">
-            {{ q.question_text }}
+          <div class="question-header">
+            <div class="question-text">
+              {{ q.question_text }}
+            </div>
+            <div class="question-meta">
+              <span class="difficulty-badge difficulty-{{ q.difficulty }}">
+                {{ q.get_difficulty_display }}
+              </span>
+              <span class="marks-badge">{{ q.marks }} mark{% if q.marks != 1 %}s{% endif %}</span>
+            </div>
           </div>
           <ul class="options-list">
             <li{% if q.correct_option == "A" %} class="correct"{% endif %}>A. {{ q.option_a }}</li>
@@ -91,6 +117,35 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
+.questions-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e5e7eb;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
 .question-list {
   padding-left: 20px;
 }
@@ -99,10 +154,60 @@
   margin-bottom: 18px;
 }
 
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .question-text {
   font-size: 15px;
   font-weight: 600;
-  margin-bottom: 8px;
+  flex: 1;
+}
+
+.question-meta {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.difficulty-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+.difficulty-easy {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.difficulty-medium {
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.difficulty-hard {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.marks-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #d1d5db;
+  color: #374151;
+  white-space: nowrap;
 }
 
 .options-list {

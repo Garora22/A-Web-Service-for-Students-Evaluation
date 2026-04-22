@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from typing import List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from django.db import transaction
 from django.utils import timezone
@@ -128,6 +128,76 @@ def _split_counts(total: int) -> Tuple[int, int, int]:
     return easy, medium, hard
 
 
+def _assign_difficulties_to_pool(pool: List[Dict]) -> List[Tuple[Dict, str, int]]:
+    """
+    Assign difficulty levels to a pool of questions.
+    Distributes difficulties evenly across the pool: 40% easy, 30% medium, 30% hard.
+    
+    Returns list of (question_dict, difficulty, marks) tuples.
+    """
+    pool_size = len(pool)
+    easy_count, medium_count, hard_count = _split_counts(pool_size)
+    
+    # Create list of (difficulty, marks) tuples
+    difficulty_marks = (
+        [("easy", 1)] * easy_count
+        + [("medium", 2)] * medium_count
+        + [("hard", 4)] * hard_count
+    )
+    
+    # Shuffle to randomly distribute difficulties
+    random.shuffle(difficulty_marks)
+    
+    result = []
+    for i, q in enumerate(pool):
+        diff, marks = difficulty_marks[i] if i < len(difficulty_marks) else ("easy", 1)
+        result.append((q, diff, marks))
+    
+    return result
+
+
+def select_questions_for_student(
+    all_questions: List[AssignmentQuestion],
+    num_to_select: int,
+) -> List[AssignmentQuestion]:
+    """
+    Select a random subset of questions while maintaining difficulty ratio.
+    
+    Args:
+        all_questions: All available questions from the pool
+        num_to_select: Number of questions to select (typically 5)
+    
+    Returns: List of selected questions maintaining the 40/30/30 difficulty ratio
+    """
+    # Calculate target difficulty distribution
+    target_easy, target_medium, target_hard = _split_counts(num_to_select)
+    
+    # Group questions by difficulty
+    by_difficulty: Dict[str, List[AssignmentQuestion]] = defaultdict(list)
+    for q in all_questions:
+        by_difficulty[q.difficulty].append(q)
+    
+    # Randomly select from each difficulty level
+    selected = []
+    if target_easy > 0 and by_difficulty["easy"]:
+        selected.extend(random.sample(
+            by_difficulty["easy"],
+            min(target_easy, len(by_difficulty["easy"]))
+        ))
+    if target_medium > 0 and by_difficulty["medium"]:
+        selected.extend(random.sample(
+            by_difficulty["medium"],
+            min(target_medium, len(by_difficulty["medium"]))
+        ))
+    if target_hard > 0 and by_difficulty["hard"]:
+        selected.extend(random.sample(
+            by_difficulty["hard"],
+            min(target_hard, len(by_difficulty["hard"]))
+        ))
+    
+    return selected
+
+
 def _build_context_chunks(
     course: Course,
     topic: str,
@@ -169,6 +239,22 @@ def generate_mcqs_for_assignment(
     professor_comment: str = "",
     material_ids: Optional[Sequence[int]] = None,
 ) -> int:
+    """
+    Generate MCQs for an assignment.
+    
+    Generates 2x the requested questions and saves all to the pool.
+    - Professor sees all questions
+    - When students take the assignment, 5 will be randomly selected from the pool
+    
+    Args:
+        assignment: The assignment to create questions for
+        num_questions: Number of questions to request (system will generate 2x)
+        topic: Topic for the questions
+        professor_comment: Instructor comment
+        material_ids: IDs of course materials to use
+    
+    Returns: Number of questions created
+    """
     course = assignment.course
     context_chunks, from_source_document = _build_context_chunks(
         course,
@@ -176,14 +262,23 @@ def generate_mcqs_for_assignment(
         professor_comment,
         material_ids,
     )
-    easy_n, medium_n, hard_n = _split_counts(num_questions)
+    
+    # Always generate 2x the requested amount for the pool
+    llm_request_count = num_questions * 2
+    
+    # Calculate difficulty distribution across the FULL pool
+    pool_easy, pool_medium, pool_hard = _split_counts(llm_request_count)
 
-    # Single Ollama call for all questions (avoids 3× sequential blocking requests)
+    print(f"[DEBUG] Requesting {llm_request_count} questions from LLM (pool size)")
+
+    # Single Ollama call for all questions
     llm_questions: List[dict] = generate_mcqs_with_ollama(
         context_chunks=context_chunks,
-        num_questions=num_questions,
+        num_questions=llm_request_count,
         from_source_document=from_source_document,
     )
+
+    print(f"[DEBUG] Received {len(llm_questions)} questions from LLM")
 
     # Deduplicate by question text
     seen: set = set()
@@ -194,17 +289,16 @@ def generate_mcqs_for_assignment(
             seen.add(qt)
             unique.append(q)
 
-    # Assign difficulty and marks based on 40/30/30 split
-    difficulty_marks: List[Tuple[str, int]] = (
-        [("easy", 1)] * easy_n
-        + [("medium", 2)] * medium_n
-        + [("hard", 4)] * hard_n
-    )
+    print(f"[DEBUG] After deduplication: {len(unique)} unique questions")
+
+    # Assign difficulties to all questions in the pool
+    pool_with_difficulties = _assign_difficulties_to_pool(unique)
+    
+    print(f"[DEBUG] Saving all {len(pool_with_difficulties)} questions to database (professor will see all)")
 
     created = 0
     with transaction.atomic():
-        for i, q in enumerate(unique):
-            diff, marks = difficulty_marks[i] if i < len(difficulty_marks) else ("easy", 1)
+        for q, diff, marks in pool_with_difficulties:
             options = q.get("options") or {}
             AssignmentQuestion.objects.create(
                 assignment=assignment,
@@ -217,8 +311,10 @@ def generate_mcqs_for_assignment(
                 explanation=q.get("explanation", ""),
                 difficulty=diff,
                 marks=marks,
+                is_active=True,
             )
             created += 1
 
+    print(f"[DEBUG] Created {created} questions total (students will see random subset of {num_questions})")
     return created
 

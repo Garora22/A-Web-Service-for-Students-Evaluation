@@ -10,11 +10,12 @@ from courses.models import Course, CourseProfessor, CourseStudent, CourseTA
 
 import hashlib
 import random
+from collections import defaultdict
 
 from django.utils import timezone as dj_timezone
 
 from .models import Assignment, AssignmentQuestion, StudentAnswer, StudentAttempt
-from .services import generate_mcqs_for_assignment
+from .services import generate_mcqs_for_assignment, select_questions_for_student
 
 
 @login_required
@@ -274,6 +275,12 @@ def assignment_questions(request, course_id: int, assignment_id: int):
     assignment = get_object_or_404(Assignment, id=assignment_id, course_id=course_id)
     questions = AssignmentQuestion.objects.filter(assignment=assignment, is_active=True)
 
+    # Calculate statistics
+    total_questions = questions.count()
+    easy_count = questions.filter(difficulty="easy").count()
+    medium_count = questions.filter(difficulty="medium").count()
+    hard_count = questions.filter(difficulty="hard").count()
+
     return render(
         request,
         "assignments/assignment_questions.html",
@@ -282,6 +289,10 @@ def assignment_questions(request, course_id: int, assignment_id: int):
             "course_id": course_id,
             "assignment": assignment,
             "questions": questions,
+            "total_questions": total_questions,
+            "easy_count": easy_count,
+            "medium_count": medium_count,
+            "hard_count": hard_count,
             "nav_active": "courses",
         },
     )
@@ -369,8 +380,51 @@ def student_take_assignment(request, course_id: int, assignment_id: int):
     submitted = attempt.submitted_at is not None
     locked = submitted or time_up
 
+    # Select subset of questions for this student (5 from the pool)
+    # Use attempt seed to make selection deterministic per student but different per student
+    all_questions = list(questions_qs)
+    
+    # Use seeded random to select questions
+    rnd_selector = random.Random(attempt.seed)
+    
+    # Calculate how many questions to select (default 5, or half the pool if pool is smaller)
+    num_to_select = min(5, max(1, len(all_questions) // 2))
+    
+    # Group by difficulty to maintain ratio
+    by_difficulty: Dict[str, List[AssignmentQuestion]] = defaultdict(list)
+    for q in all_questions:
+        by_difficulty[q.difficulty].append(q)
+    
+    # Calculate target distribution
+    target_easy = round(num_to_select * 0.4)
+    target_medium = round(num_to_select * 0.3)
+    target_hard = num_to_select - target_easy - target_medium
+    
+    # Randomly select maintaining ratio
+    selected_questions = []
+    if target_easy > 0:
+        sample = rnd_selector.sample(
+            by_difficulty.get("easy", []),
+            min(target_easy, len(by_difficulty.get("easy", [])))
+        )
+        selected_questions.extend(sample)
+    
+    if target_medium > 0:
+        sample = rnd_selector.sample(
+            by_difficulty.get("medium", []),
+            min(target_medium, len(by_difficulty.get("medium", [])))
+        )
+        selected_questions.extend(sample)
+    
+    if target_hard > 0:
+        sample = rnd_selector.sample(
+            by_difficulty.get("hard", []),
+            min(target_hard, len(by_difficulty.get("hard", [])))
+        )
+        selected_questions.extend(sample)
+
     # Determine shuffled question order per attempt
-    questions = list(questions_qs)
+    questions = selected_questions
     rnd = random.Random(attempt.seed)
     rnd.shuffle(questions)
 
