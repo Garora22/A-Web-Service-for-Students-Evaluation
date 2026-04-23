@@ -6,7 +6,7 @@ import requests
 
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:latest")
 
 
 _JSON_SCHEMA_HINT = """
@@ -94,7 +94,7 @@ def generate_mcqs_with_ollama(
             "prompt": prompt,
             "stream": False,
         },
-        timeout=300,
+        timeout=900,
     )
     response.raise_for_status()
 

@@ -1,4 +1,4 @@
-# Quetor: A Web Service for Students Evaluation
+# Quetor: A Web Service for Students Evaluation in a Course
 ## Comprehensive Technical Project Report
 
 **Project Title**: Quetor — An AI-Powered Educational Platform for Lecture-Based Assessment
@@ -29,7 +29,7 @@
 12. [Configuration](#12-configuration)
 13. [Data Flow Diagrams](#13-data-flow-diagrams)
 14. [Security Considerations](#14-security-considerations)
-15. [Limitations & Future Scope](#15-limitations--future-scope)
+15. [Future Scope](#15-future-scope)
 
 ---
 
@@ -216,7 +216,7 @@ A-Web-Service-for-Students-Evaluation/
 │   │   ├── auth.css                 # Login/registration page styling
 │   │   └── courses.css              # Main app styling
 │   └── img/
-│       └── iitk_logo.png            # Institute logo
+│       └── default.png            # A Simple Person Logo
 │
 ├── media/                           # User-uploaded files (runtime, gitignored)
 │   ├── course_materials/            # Lecture slides and PDFs uploaded by professors
@@ -1026,19 +1026,7 @@ Page re-renders showing:
 
 ---
 
-## 15. Limitations & Future Scope
-
-### Current Limitations
-
-| Area | Limitation |
-|---|---|
-| Database | SQLite not suitable for concurrent production load |
-| LLM Quality | MCQ quality depends on Gemma3's capability; questions may occasionally be trivial |
-| Synchronous LLM | MCQ generation is synchronous; large PPTX on a slow GPU can timeout the browser request |
-| No Retakes | Students cannot retake quizzes even for practice purposes |
-| Single Professor | Each course supports only one primary professor (`OneToOneField`) |
-| No Analytics | No aggregate analytics across courses or over time |
-| No Notifications | No email/in-app notifications for new query responses or grade releases |
+## 15. Future Scope
 
 ### Suggested Future Enhancements
 
@@ -1052,6 +1040,8 @@ Page re-renders showing:
 8. **Better LLM Model Support** — UI to switch between OLLAMA-compatible models (Llama 3, Mistral, etc.)
 9. **REST API** — Expose endpoints for a potential mobile application
 10. **File Upload Validation** — Server-side MIME type checking and size limits
+11. **Difficulty Levels** - Students should be to say if the assigned difficulty to a question was correct
+12. **Wrong Answer Validation** - Students should be able to raise if the answer/explanation for any LLM generated question is wrong against the answer given by the LLM
 
 ---
 

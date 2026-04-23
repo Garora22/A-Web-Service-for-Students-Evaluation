@@ -6,3 +6,5 @@ __pycache__/
 staticfiles/
 *.log
 .DS_Store
+db.sqlite3
+.env
